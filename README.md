@@ -1,3 +1,4 @@
 RumorGuard is a C++ simulation project that models how misinformation spreads through a synthetic social network (generated via the Barabási–Albert model) and evaluates four containment strategies — no intervention, degree-based targeting, betweenness centrality targeting, and greedy influence maximization — to determine which most effectively limits spread under a constrained intervention budget. Built entirely with native C++ data structures and graph algorithms (adjacency lists, BFS/DFS, priority queues, Brandes' algorithm) — no machine learning involved.
 
 Want me to also suggest some GitHub topics/tags (like cpp, graph-algorithms, data-structures, simulation) for discoverability?
+<img width="810" height="665" alt="Screenshot 2026-09-01 224040" src="https://github.com/user-attachments/assets/3f3a0b67-8d07-4401-9746-e59171bf0693" />
