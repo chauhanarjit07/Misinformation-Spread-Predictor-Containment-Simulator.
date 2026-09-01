@@ -1,2 +1,3 @@
-# Misinformation-Spread-Predictor-Containment-Simulator.
-A Misinformation Spread Predictor &amp; Containment Simulator.
+RumorGuard is a C++ simulation project that models how misinformation spreads through a synthetic social network (generated via the Barabási–Albert model) and evaluates four containment strategies — no intervention, degree-based targeting, betweenness centrality targeting, and greedy influence maximization — to determine which most effectively limits spread under a constrained intervention budget. Built entirely with native C++ data structures and graph algorithms (adjacency lists, BFS/DFS, priority queues, Brandes' algorithm) — no machine learning involved.
+
+Want me to also suggest some GitHub topics/tags (like cpp, graph-algorithms, data-structures, simulation) for discoverability?
