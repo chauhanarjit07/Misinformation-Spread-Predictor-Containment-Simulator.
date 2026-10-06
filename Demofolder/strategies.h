@@ -48,7 +48,8 @@ public:
         // Store the selected nodes
         std::vector<int> selected;
 
-        // Select only as many nodes as the budget allows
+        // The budget limits how many nodes can be selected
+        // for containment
         for (int i = 0; i < budget && i < ranked.size(); i++)
             selected.push_back(ranked[i].node);
 
