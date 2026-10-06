@@ -46,7 +46,10 @@ public:
         // Sort nodes from highest score to lowest score
         sort(ranked.begin(), ranked.end(),
             [](NodeScore a, NodeScore b) {
-                return a.score > b.score;
+
+                if (a.score != b.score)
+               return a.score > b.score;
+                return a.node < b.node; // Tie-breaker: lower node id first
             });
 
         // Store the selected nodes
