@@ -36,6 +36,10 @@ public:
         const std::vector<NodeScore>& nodes,
         int budget) override {
 
+            //A negative budget is not valid
+            if ( budget < 0) 
+                budget = 0;
+
         // Make a copy so the original list is not changed
         std::vector<NodeScore> ranked = nodes;
 
