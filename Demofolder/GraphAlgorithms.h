@@ -1,0 +1,1 @@
+int getMaximumDegree(const Graph& graph);
