@@ -43,6 +43,10 @@ public:
         // Make a copy so the original list is not changed
         std::vector<NodeScore> ranked = nodes;
 
+        //Budget cannot be larger than the number of available nodes
+            if (budget > ranked.size())
+                budget = ranked.size();
+
         // Sort nodes from highest score to lowest score
         sort(ranked.begin(), ranked.end(),
             [](NodeScore a, NodeScore b) {
