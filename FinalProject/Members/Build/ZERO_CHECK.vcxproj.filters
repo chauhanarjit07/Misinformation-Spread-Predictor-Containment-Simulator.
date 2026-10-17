@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="18.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="D:\CS\projects\rumorguard\build\CMakeFiles\cdcf8b852bb0ea1c681c2b157156e80d\generate.stamp.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{288F2AAF-AD52-3B67-9480-291F2C2739DE}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
