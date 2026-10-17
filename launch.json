@@ -1,0 +1,58 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug RumorGuard",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/rumorguard",
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": {},
+            "externalConsole": true,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "text": "set pagination off",
+                    "description": "Disable pagination for GDB"
+                },
+                {
+                    "text": "set print pretty on",
+                    "description": "Enable pretty printing"
+                },
+                {
+                    "text": "set print demangle on",
+                    "description": "Enable mangled name demangling"
+                },
+                {
+                    "text": "set print asm-demangle on",
+                    "description": "Demangle assembly symbols"
+                }
+            ],
+            "preLaunchTask": "Build",
+            "args": [
+                "--nodes",
+                "500",
+                "--m",
+                "3",
+                "--trials",
+                "20",
+                "--outdir",
+                "results/"
+            ]
+        },
+        {
+            "name": "Run with Custom Parameters",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/rumorguard",
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": {},
+            "externalConsole": true,
+            "MIMode": "gdb",
+            "args": [],
+            "preLaunchTask": "Build"
+        }
+    ]
+}

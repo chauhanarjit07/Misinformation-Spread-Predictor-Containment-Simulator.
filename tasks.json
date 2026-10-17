@@ -1,0 +1,88 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Configure",
+            "type": "shell",
+            "command": "mkdir build && cd build && cmake ..",
+            "problemMatcher": [],
+            "group": {
+                "kind": "none",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Build",
+            "type": "shell",
+            "command": "cd build && make -j$(nproc)",
+            "problemMatcher": [
+                {
+                    "owner": "cpp",
+                    "patterns": [
+                        {
+                            "regexp": "^\\[\\s*(\\d+)%\\]\\s+([^(]+)\\(([^)]*)\\)\\s+(.*)$",
+                            "file": 2,
+                            "location": 1
+                        },
+                        {
+                            "regexp": "^(.*?):\\s*(\\d+):\\s*(.*)$",
+                            "file": 1,
+                            "location": 2
+                        }
+                    ],
+                    "background": {
+                        "activeOnStart": true,
+                        "beginsPattern": {
+                            "regexp": "\\[.*%\\]\\s+.*\\.\\.\\."
+                        },
+                        "endsPattern": {
+                            "regexp": "\\[.*%\\]\\s+Done\\.|built in|seconds.*time"
+                        }
+                    }
+                }
+            ],
+            "dependsOn": "Configure",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Run with Defaults",
+            "type": "shell",
+            "command": "./build/rumorguard --nodes 500 --m 3 --trials 20 --outdir results/",
+            "problemMatcher": [],
+            "dependsOn": "Build"
+        },
+        {
+            "label": "Run with Custom Parameters",
+            "type": "shell",
+            "command": "./build/rumorguard ${1}",
+            "problemMatcher": [],
+            "dependsOn": "Build"
+        },
+        {
+            "label": "Debug",
+            "type": "cppdbg",
+            "request": "launch",
+            "name": "Debug RumorGuard",
+            "program": "${workspaceFolder}/build/rumorguard",
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": {},
+            "externalConsole": true,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "text": "set pagination off",
+                    "description": "Disable pagination for GDB"
+                },
+                {
+                    "text": "set print pretty on",
+                    "description": "Enable pretty printing"
+                }
+            ],
+            "preLaunchTask": "Build"
+        }
+    ]
+}
