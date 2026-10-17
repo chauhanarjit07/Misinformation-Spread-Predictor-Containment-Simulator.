@@ -1,0 +1,10 @@
+^D:\CS\PROJECTS\RUMORGUARD\BUILD\CMAKEFILES\CDCF8B852BB0EA1C681C2B157156E80D\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SD:/CS/projects/rumorguard -BD:/CS/projects/rumorguard/build --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file D:/CS/projects/rumorguard/build/rumorguard.slnx
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
