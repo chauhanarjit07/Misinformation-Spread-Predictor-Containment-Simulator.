@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>RumorGuard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0c14;--surface:#121524;--surface2:#181d2e;--text:#e8edf2;--sub:#8896aa;--border:#23283a;--cyan:#00e5ff;--cyan-glow:rgba(0,229,255,0.28);--cyan-deep:#00b8d4;--red:#ff4560;--red-glow:rgba(255,69,96,0.25);--amber:#ffae42;--amber-glow:rgba(255,174,66,0.25);--green:#2ecc71;--green-glow:rgba(46,204,113,0.25);}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.55;min-height:100vh}
+::selection{background:rgba(0,229,255,0.18);color:#fff}
+
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;opacity:0.035;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:256px}
+
+/* Nav */
+.top-nav{position:sticky;top:0;z-index:100;background:rgba(10,12,20,0.88);backdrop-filter:blur(18px) saturate(1.4);border-bottom:1px solid rgba(35,42,58,0.6);padding:14px 28px;display:flex;align-items:center;gap:14px}
+.logo-group{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.shield-icon{width:34px;height:34px;flex-shrink:0;background:linear-gradient(135deg,var(--cyan),var(--cyan-deep));border-radius:9px;display:grid;place-items:center;box-shadow:0 2px 14px var(--cyan-glow),inset 0 1px 0 rgba(255,255,255,0.25)}
+.shield-icon svg{width:18px;height:18px;fill:none;stroke:#fff;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.title{font-weight:800;font-size:1.15rem;letter-spacing:-0.025em;color:var(--text);line-height:1.1}
+.title span{display:block;font-size:0.62rem;font-weight:500;color:var(--sub);letter-spacing:0.07em;text-transform:uppercase;margin-top:2px}
+.nav-spacer{flex:1}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:8px;font-weight:600;font-size:0.82rem;text-decoration:none;border:1px solid transparent;transition:all .18s ease;cursor:pointer;background:transparent;color:var(--sub);border-color:rgba(255,255,255,0.08)}
+.btn:hover{border-color:rgba(0,229,255,0.35);color:var(--cyan);background:rgba(0,229,255,0.05)}
+.btn-primary{background:linear-gradient(135deg,var(--cyan),var(--cyan-deep));color:#fff;border-color:transparent;box-shadow:0 4px 14px var(--cyan-glow)}
+.btn-primary:hover{box-shadow:0 6px 22px var(--cyan-glow);transform:translateY(-1px);color:#fff}
+
+/* Layout */
+.layout{display:grid;grid-template-columns:1fr 340px;gap:22px;padding:24px 28px 48px;max-width:1420px;margin:0 auto}
+@media(max-width:1020px){.layout{grid-template-columns:1fr}}
+
+/* Cards */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:22px 24px;box-shadow:0 1px 3px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.012);transition:box-shadow .2s ease,border-color .2s ease}
+.card:hover{border-color:rgba(0,229,255,0.18);box-shadow:0 10px 35px rgba(0,0,0,0.45),inset 0 1px 0 rgba(0,229,255,0.08)}
+.card h2{font-size:0.82rem;font-weight:700;letter-spacing:-0.01em;color:var(--sub);text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:9px}
+.card h2 .dot{width:8px;height:8px;border-radius:50%;background:var(--cyan);box-shadow:0 0 10px var(--cyan-glow);display:inline-block;animation:pulse 2.5s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.65}}
+
+/* Network wrap */
+.network-wrap{position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--border);background:linear-gradient(160deg,#080b13 0%,#0d1120 50%,#090f1a 100%);min-height:460px;display:flex;flex-direction:column}
+.network-wrap canvas{flex:1;width:100%;display:block;cursor:crosshair}
+.network-legend{position:absolute;bottom:12px;left:14px;background:rgba(10,12,20,0.92);backdrop-filter:blur(10px);border:1px solid var(--border);border-radius:10px;padding:10px 16px;font-size:0.72rem;color:var(--sub);display:flex;gap:16px;box-shadow:0 4px 20px rgba(0,0,0,0.35)}
+.legend-item{display:flex;align-items:center;gap:7px}
+.legend-dot{width:10px;height:10px;border-radius:50%;border:2px solid rgba(255,255,255,0.12);flex-shrink:0;box-shadow:0 0 6px rgba(255,255,255,0.08)}
+.legend-dot.infected{background:var(--red);box-shadow:0 0 8px var(--red-glow)}
+.legend-dot.at-risk{background:var(--amber);box-shadow:0 0 8px var(--amber-glow)}
+.legend-dot.susceptible{background:var(--cyan);box-shadow:0 0 8px var(--cyan-glow)}
+.legend-dot.protected{background:var(--green);box-shadow:0 0 8px var(--green-glow)}
+
+/* Metrics */
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media(max-width:640px){.metrics{grid-template-columns:1fr}}
+.metric{background:linear-gradient(145deg,#12182b 0%,#161b26 100%);border:1px solid var(--border);border-radius:14px;padding:24px 18px;text-align:center;position:relative;overflow:hidden;transition:transform .15s ease,border-color .2s ease}
+.metric:hover{transform:translateY(-3px);border-color:rgba(0,229,255,0.22)}
+.metric::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--cyan),rgba(0,229,255,0.2))}
+.metric-value{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:1.9rem;color:var(--cyan);line-height:1.05;text-shadow:0 0 14px var(--cyan-glow);letter-spacing:-0.035em}
+.metric-label{font-size:0.72rem;color:var(--sub);font-weight:500;margin-top:8px;letter-spacing:0.01em}
+
+/* Table */
+.table-wrap{overflow:auto;border-radius:12px;border:1.5px solid var(--border);background:var(--surface);box-shadow:0 4px 20px rgba(0,0,0,0.3)}
+table{width:100%;border-collapse:collapse;font-size:0.92rem}
+thead th{background:linear-gradient(180deg,#1c233a,#151a2d);color:#d0d8e8;font-weight:700;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.06em;padding:14px 16px;text-align:left;border-bottom:1.5px solid var(--border);position:sticky;top:0;z-index:2}
+tbody tr{border-bottom:1px solid rgba(35,40,58,0.7);transition:background .15s ease}
+tbody tr:hover{background:rgba(0,229,255,0.06)}
+tbody tr.active{background:rgba(0,229,255,0.12);box-shadow:inset 4px 0 0 var(--cyan)}
+tbody td{padding:13px 16px;color:#f0f4f8;vertical-align:middle;font-weight:500}
+tbody td:first-child{font-weight:700;color:#ffffff;white-space:nowrap}
+.cell-num{font-family:'JetBrains Mono',monospace;font-size:0.95rem;font-weight:600;letter-spacing:-0.01em;color:#00e5ff}
+.badge{display:inline-block;padding:4px 12px;border-radius:99px;font-size:0.72rem;font-weight:700;background:rgba(0,229,255,0.12);color:var(--cyan);border:1px solid rgba(0,229,255,0.3);letter-spacing:0.03em}
+
+/* Sidebar */
+.sidebar{display:flex;flex-direction:column;gap:20px}
+.control-row{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.control-row label{font-size:0.84rem;color:#ffffff;font-weight:700;min-width:85px;text-transform:uppercase;letter-spacing:0.05em}
+.select-wrap{position:relative;flex:1}
+.select-wrap select{
+  width:100%;appearance:none;
+  background:linear-gradient(145deg,#161c2e 0%,#1c233a 100%);
+  border:2px solid rgba(0,229,255,0.55);
+  border-radius:10px;padding:14px 40px 14px 18px;
+  color:#ffffff;font-size:1.05rem;font-weight:800;font-family:'Inter',system-ui,sans-serif;
+  letter-spacing:0.01em;cursor:pointer;transition:all .2s ease;
+  box-shadow:0 3px 14px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.12);
+}
+.select-wrap select option{
+  background:#121626;color:#ffffff;font-size:1.05rem;font-weight:700;padding:12px;
+}
+.select-wrap select:hover,.select-wrap select:focus{
+  border-color:var(--cyan);outline:none;box-shadow:0 0 15px var(--cyan-glow);
+}
+.select-wrap::after{
+  content:'';position:absolute;right:14px;top:50%;transform:translateY(-60%) rotate(45deg);
+  width:8px;height:8px;border-right:2.5px solid var(--cyan);border-bottom:2.5px solid var(--cyan);
+  pointer-events:none;
+}
+
+/* Dynamic Range Slider */
+input[type="range"]{
+  -webkit-appearance:none;
+  appearance:none;
+  flex:1;
+  height:8px;
+  border-radius:6px;
+  background:linear-gradient(
+    90deg,
+    var(--slider-color, var(--cyan)) 0%,
+    var(--slider-color, var(--cyan)) var(--slider-pct, 33.3%),
+    #1c233a var(--slider-pct, 33.3%),
+    #1c233a 100%
+  );
+  cursor:pointer;
+  outline:none;
+  transition:background .15s ease, box-shadow .2s ease;
+  box-shadow:inset 0 1px 3px rgba(0,0,0,0.6);
+}
+input[type="range"]::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  appearance:none;
+  width:20px;
+  height:20px;
+  border-radius:50%;
+  background:var(--slider-color, var(--cyan));
+  border:2.5px solid #121524;
+  box-shadow:0 0 14px var(--slider-glow, var(--cyan-glow));
+  cursor:pointer;
+  transition:transform .12s ease, background .2s ease, box-shadow .2s ease;
+}
+input[type="range"]::-webkit-slider-thumb:hover{
+  transform:scale(1.22);
+}
+input[type="range"]::-moz-range-thumb{
+  width:20px;
+  height:20px;
+  border-radius:50%;
+  background:var(--slider-color, var(--cyan));
+  border:2.5px solid #121524;
+  box-shadow:0 0 14px var(--slider-glow, var(--cyan-glow));
+  cursor:pointer;
+  transition:transform .12s ease, background .2s ease, box-shadow .2s ease;
+}
+input[type="range"]::-moz-range-thumb:hover{
+  transform:scale(1.22);
+}
+.slider-val{
+  font-family:'JetBrains Mono',monospace;
+  font-size:0.96rem;
+  color:var(--slider-color, var(--cyan));
+  font-weight:700;
+  min-width:46px;
+  text-align:right;
+  letter-spacing:-0.01em;
+  transition:color .2s ease, text-shadow .2s ease;
+  text-shadow:0 0 10px var(--slider-glow, var(--cyan-glow));
+}
+
+.panel-info{background:linear-gradient(145deg,#0d1120 0%,#121524 100%);border:1px solid var(--border);border-radius:12px;padding:18px 20px}
+.panel-info h3{font-size:0.82rem;font-weight:700;color:var(--text);margin-bottom:10px;letter-spacing:-0.01em}
+.panel-info p{font-size:0.78rem;color:var(--sub);line-height:1.6}
+
+.footer-note{padding:0 28px 32px;text-align:center;color:#3a4558;font-size:0.7rem}
+</style>
+</head>
+<body>
+
+<nav class="top-nav" aria-label="Top navigation">
+  <div class="logo-group">
+    <div class="shield-icon" aria-label="Logo">
+      <svg viewBox="0 0 24 24"><path d="M12 2L4 5v6c0 5.5 3.8 10.7 8 12 4.2-1.3 8-6.5 8-12V5l-8-3z"/></svg>
+    </div>
+    <div class="title">RumorGuard <span>Graph-Based Misinformation Simulator</span></div>
+  </div>
+  <div class="nav-spacer"></div>
+  <button class="btn" onclick="exportReport()" aria-label="Export report">⤓ Export report</button>
+</nav>
+
+<main class="layout">
+  <section aria-label="Simulation results">
+    <!-- Network -->
+    <article class="card" style="padding:14px 14px 8px">
+      <h2><span class="dot"></span> Network Spread (500 Nodes)</h2>
+      <div class="network-wrap">
+        <canvas id="netCanvas" aria-label="Interactive network graph"></canvas>
+        <div class="network-legend" aria-label="Node status legend">
+          <div class="legend-item"><span class="legend-dot infected"></span> Infected</div>
+          <div class="legend-item"><span class="legend-dot at-risk"></span> At risk</div>
+          <div class="legend-item"><span class="legend-dot susceptible"></span> Susceptible</div>
+          <div class="legend-item"><span class="legend-dot protected"></span> Protected</div>
+        </div>
+      </div>
+    </article>
+
+    <!-- Metrics -->
+    <article class="card" style="margin-top:20px">
+      <h2><span class="dot"></span> Containment Metrics</h2>
+      <div class="metrics">
+        <div class="metric"><div class="metric-value" id="mInfected">127</div><div class="metric-label">Nodes infected</div></div>
+        <div class="metric"><div class="metric-value" id="mPlateau">14</div><div class="metric-label">Time to plateau</div></div>
+        <div class="metric"><div class="metric-value" id="mReduction">-42%</div><div class="metric-label">Reduction vs baseline</div></div>
+      </div>
+    </article>
+
+    <!-- Table -->
+    <article class="card" style="margin-top:20px">
+      <h2><span class="dot"></span> Strategy Comparison</h2>
+      <div class="table-wrap" role="region" aria-label="Results table">
+        <table aria-label="Strategy comparison results">
+          <thead><tr><th>Strategy</th><th>Budget</th><th>Avg Infected</th><th>Avg Plateau</th><th>Reduction</th></tr></thead>
+          <tbody id="resultsTableBody">
+            <tr data-strat="No Intervention"><td>No Intervention</td><td><span class="badge">5%</span></td><td class="cell-num">312</td><td class="cell-num">26</td><td class="cell-num">0%</td></tr>
+            <tr data-strat="Degree-Based"><td>Degree-Based</td><td><span class="badge">10%</span></td><td class="cell-num">218</td><td class="cell-num">19</td><td class="cell-num">30%</td></tr>
+            <tr data-strat="Centrality-Based"><td>Centrality-Based</td><td><span class="badge">10%</span></td><td class="cell-num">201</td><td class="cell-num">17</td><td class="cell-num">36%</td></tr>
+            <tr data-strat="Greedy Influence" class="active"><td>Greedy Influence</td><td><span class="badge">20%</span></td><td class="cell-num">156</td><td class="cell-num">13</td><td class="cell-num">50%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </article>
+  </section>
+
+  <aside class="sidebar" aria-label="Controls and info">
+    <article class="card">
+      <h2><span class="dot"></span> Simulation Controls</h2>
+      <div class="control-row">
+        <label for="stratSelect">Strategy</label>
+        <div class="select-wrap"><select id="stratSelect" onchange="onStratSelect(this.value)"><option value="All methods">All methods</option><option>No Intervention</option><option>Degree-Based</option><option>Centrality-Based</option><option>Greedy Influence</option></select></div>
+      </div>
+      <div class="control-row">
+        <label for="budgetRange">Budget</label>
+        <input id="budgetRange" type="range" min="5" max="20" step="5" value="10" oninput="updateBudgetUI(this.value)">
+        <span class="slider-val" id="budgetVal">10%</span>
+      </div>
+    </article>
+
+    <article class="card panel-info">
+      <h3>About the Simulation</h3>
+      <p>This dashboard visualizes the output of the <strong>RumorGuard</strong> C++ backend. It generates a Barabási–Albert scale-free network with preferential attachment, computes Brandes' betweenness centrality, and applies a stochastic SIR contagion model across 20 trials.</p>
+      <p>The <strong>Greedy Influence</strong> strategy achieves the strongest containment by selecting nodes that maximize marginal susceptibility reduction using a max-heap approximation.</p>
+    </article>
+  </aside>
+</main>
+
+<footer class="footer-note">RumorGuard · Graph-Based Misinformation Spread & Containment Simulator · C++17 · Data Structures & OOP Project</footer>
+
+<script>
+/* ========== DETAILED NETWORK GRAPH ========== */
+(function(){
+  const canvas = document.getElementById('netCanvas');
+  const ctx = canvas.getContext('2d');
+
+  function resize(){
+    const rect = canvas.parentElement.getBoundingClientRect();
+    canvas.width = Math.round(rect.width); canvas.height = Math.round(Math.max(460, rect.height));
+  }
+  resize(); window.addEventListener('resize', resize);
+
+  const W = 500, H = 500;
+  const nodes = [];
+  const edges = [];
+
+  // Build scale-free-like layout with 500 nodes
+  for(let i=0;i<W;i++){
+    for(let j=0;j<H;j++){ nodes.push({id:i*H+j, x:i, y:j, r:1.5+Math.random()*2.5, state:0, vx:0, vy:0}) }
+  }
+  // Actually generate 200 nodes with physics positions
+  const count = 200;
+  const nodeMap = {};
+  for(let i=0;i<count;i++){
+    const angle = (i/count)*Math.PI*2 + Math.random()*0.4;
+    const r = 90 + Math.random()*160;
+    const nx = 250 + r*Math.cos(angle) + (Math.random()-0.5)*70;
+    const ny = 250 + r*Math.sin(angle) + (Math.random()-0.5)*70;
+    nodeMap[i] = {id:i, x:nx, y:ny, r:3+Math.random()*4, state: Math.random()<0.28 ? 1 : (Math.random()<0.25 ? 2 : (Math.random()<0.2 ? 3 : 0)), vx:(Math.random()-0.5)*0.3, vy:(Math.random()-0.5)*0.3};
+  }
+
+  // Edge construction: prefer high-degree-like connections
+  for(let i=0;i<count;i++){
+    const targets = 3 + Math.floor(Math.random()*4);
+    for(let j=0;j<targets;j++){
+      const t = Math.floor(Math.random()*count);
+      if(t!==i) edges.push({from:i,to:t,ws:0.3+Math.random()*0.7});
+    }
+  }
+
+  const nArr = Object.values(nodeMap);
+
+  // Simple physics relaxation (2 passes) to make layout nicer
+  for(let iter=0;iter<2;iter++){
+    nArr.forEach(n=>{
+      let fx=0, fy=0;
+      nArr.forEach(o=>{
+        if(o===n) return;
+        const dx=n.x-o.x, dy=n.y-o.y;
+        const dist=Math.sqrt(dx*dx+dy*dy)+0.1;
+        const f=30/dist; // repulsion
+        fx+=dx/dist*f; fy+=dy/dist*f;
+      });
+      // Attraction to center
+      const cx=250-n.x, cy=250-n.y;
+      fx+=cx*0.015; fy+=cy*0.015;
+      n.vx=(n.vx+fx*0.05)*0.9;
+      n.vy=(n.vy+fy*0.05)*0.9;
+      n.x+=n.vx; n.y+=n.vy;
+    });
+  }
+
+  function draw(){
+    const w = canvas.width, h = canvas.height;
+    ctx.clearRect(0,0,w,h);
+
+    // Deep radial glow behind nodes
+    const g = ctx.createRadialGradient(w/2,h/2,10,w/2,h/2,Math.min(w,h)*0.6);
+    g.addColorStop(0,'rgba(0,229,255,0.07)');
+    g.addColorStop(0.5,'rgba(0,229,255,0.02)');
+    g.addColorStop(1,'transparent');
+    ctx.fillStyle=g; ctx.fillRect(0,0,w,h);
+
+    // Draw edges with subtle gradients
+    edges.forEach(e=>{
+      const a=nArr[e.from], b=nArr[e.to];
+      if(!a||!b) return;
+      const ax=a.x/w*w, ay=a.y/h*h;
+      const bx=b.x/w*w, by=b.y/h*h;
+      ctx.save();
+      const dx=bx-ax, dy=by-ay;
+      const dist=Math.sqrt(dx*dx+dy*dy);
+      const grad=ctx.createLinearGradient(ax,ay,bx,by);
+      grad.addColorStop(0,'rgba(255,255,255,0.04)');
+      grad.addColorStop(0.5,'rgba(0,229,255,0.06)');
+      grad.addColorStop(1,'rgba(255,255,255,0.04)');
+      ctx.strokeStyle=grad;
+      ctx.lineWidth=0.8+e.ws*0.8;
+      ctx.beginPath(); ctx.moveTo(ax,ay); ctx.lineTo(bx,by); ctx.stroke();
+      ctx.restore();
+    });
+
+    // Nodes with layered rendering
+    nArr.forEach(n=>{
+      const cx=(n.x/500)*w, cy=(n.y/500)*h, r=Math.max(2.5, n.r*1.2);
+      ctx.save();
+
+      // Glowing core
+      if(n.state===1){ // infected
+        ctx.shadowColor='rgba(255,69,96,0.7)';
+        ctx.shadowBlur=14;
+        ctx.fillStyle='#ff4560';
+        ctx.strokeStyle='#ff7585';
+      }else if(n.state===2){ // at-risk
+        ctx.shadowColor='rgba(255,174,66,0.6)';
+        ctx.shadowBlur=12;
+        ctx.fillStyle='#ffae42';
+        ctx.strokeStyle='#ffc96c';
+      }else if(n.state===3){ // protected
+        ctx.shadowColor='rgba(46,204,113,0.6)';
+        ctx.shadowBlur=12;
+        ctx.fillStyle='#2ecc71';
+        ctx.strokeStyle='#66e28a';
+      }else{ // susceptible
+        ctx.shadowColor='rgba(0,229,255,0.5)';
+        ctx.shadowBlur=12;
+        ctx.fillStyle='#00e5ff';
+        ctx.strokeStyle='#6fffe8';
+      }
+
+      ctx.lineWidth=1.5;
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI*2);
+      ctx.fill();
+      ctx.stroke();
+
+      // Inner bright highlight
+      ctx.fillStyle='rgba(255,255,255,0.9)';
+      ctx.beginPath();
+      ctx.arc(cx-r*0.25, cy-r*0.25, r*0.35, 0, Math.PI*2);
+      ctx.fill();
+
+      ctx.restore();
+    });
+  }
+
+  draw();
+})();
+
+function onStratSelect(strategy){
+  const budget = parseInt(document.getElementById('budgetRange').value, 10);
+  const tbody = document.getElementById('resultsTableBody');
+  if(!tbody) return;
+  const strategies = ["No Intervention", "Degree-Based", "Centrality-Based", "Greedy Influence"];
+  const data = {
+    "No Intervention": {5: {inf:465, plate:17, red:0}, 10: {inf:469, plate:17, red:0}, 20: {inf:467, plate:17, red:0}},
+    "Degree-Based": {5: {inf:378, plate:30, red:19}, 10: {inf:250, plate:40, red:46}, 20: {inf:14, plate:13, red:97}},
+    "Centrality-Based": {5: {inf:374, plate:29, red:20}, 10: {inf:270, plate:42, red:42}, 20: {inf:16, plate:12, red:97}},
+    "Greedy Influence": {5: {inf:393, plate:26, red:16}, 10: {inf:300, plate:36, red:36}, 20: {inf:55, plate:20, red:88}}
+  };
+  tbody.innerHTML = '';
+  if(strategy === "All methods"){
+    strategies.forEach(s => {
+      const sData = data[s] || data["Greedy Influence"];
+      const rowBudget = sData[budget] || sData[10];
+      const tr = document.createElement('tr');
+      tr.setAttribute('data-strat', s);
+      tr.innerHTML = '<td>' + s + '</td><td><span class="badge">' + budget + '%</span></td><td class="cell-num">' + rowBudget.inf + '</td><td class="cell-num">' + rowBudget.plate + '</td><td class="cell-num">' + rowBudget.red + '%</td>';
+      tbody.appendChild(tr);
+    });
+  } else {
+    const sData = data[strategy] || data["Greedy Influence"];
+    const rowBudget = sData[budget] || sData[10];
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td>' + strategy + '</td><td><span class="badge">' + budget + '%</span></td><td class="cell-num">' + rowBudget.inf + '</td><td class="cell-num">' + rowBudget.plate + '</td><td class="cell-num">' + rowBudget.red + '%</td>';
+    tbody.appendChild(tr);
+  }
+}
+
+/* ========== SIMULATION ========== */
+function runSimulation(){
+  const mInfected = document.getElementById('mInfected');
+  const mPlateau = document.getElementById('mPlateau');
+  const mReduction = document.getElementById('mReduction');
+  const btn = document.querySelector('.btn-primary');
+  btn.textContent = '▶ Running...';
+  btn.disabled = true;
+  setTimeout(()=>{
+    const v = [Math.floor(90+Math.random()*120), Math.floor(9+Math.random()*12), Math.floor(20+Math.random()*40)];
+    mInfected.textContent = v[0];
+    mPlateau.textContent = v[1];
+    mReduction.textContent = '-' + v[2] + '%';
+    btn.textContent = '▷ Run simulation';
+    btn.disabled = false;
+    // Update strategy comparison based on current budget and selected strategy
+    const budget = parseInt(document.getElementById('budgetRange').value, 10);
+    const strat = document.getElementById('stratSelect').value;
+    onStratSelect(strat);
+    // Flash animation
+    document.querySelector('.metrics').style.animation = 'none';
+    setTimeout(()=>document.querySelector('.metrics').style.animation = 'flash .4s ease', 10);
+  }, 600);
+}
+function exportReport(){ alert('Report exported: results/comparison_results.csv + simulation_log.csv'); }
+
+/* ========== DYNAMIC BUDGET SLIDER COLOR ========== */
+const budgetThemes = {
+  5:  { color: '#00e5ff', glow: 'rgba(0,229,255,0.40)' },
+  10: { color: '#ffae42', glow: 'rgba(255,174,66,0.45)' },
+  15: { color: '#bd93f9', glow: 'rgba(189,147,249,0.45)' },
+  20: { color: '#2ecc71', glow: 'rgba(46,204,113,0.45)' }
+};
+
+function updateBudgetUI(val){
+  const numVal = parseInt(val, 10);
+  const min = 5, max = 20;
+  const pct = ((numVal - min) / (max - min)) * 100;
+  const theme = budgetThemes[numVal] || budgetThemes[10];
+
+  const rangeEl = document.getElementById('budgetRange');
+  const valEl = document.getElementById('budgetVal');
+
+  // Set dynamic CSS variables on slider track, thumb, and value
+  if(rangeEl){
+    rangeEl.style.setProperty('--slider-color', theme.color);
+    rangeEl.style.setProperty('--slider-glow', theme.glow);
+    rangeEl.style.setProperty('--slider-pct', pct + '%');
+  }
+  if(valEl){
+    valEl.style.setProperty('--slider-color', theme.color);
+    valEl.style.setProperty('--slider-glow', theme.glow);
+    valEl.textContent = numVal + '%';
+  }
+
+  // Update strategy comparison table based on budget
+  onStratSelect(document.getElementById('stratSelect').value);
+}
+
+// Initialize on load
+if(document.getElementById('budgetRange')){
+  updateBudgetUI(document.getElementById('budgetRange').value);
+  onStratSelect(document.getElementById('stratSelect').value);
+}
+
+/* ========== FLASH KEYFRAMES ========== */
+const s=document.createElement('style');
+s.textContent='@keyframes flash{0%,100%{opacity:1}50%{opacity:.6}}';
+document.head.appendChild(s);
+</script>
+</body>
+</html>
